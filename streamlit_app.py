@@ -2,88 +2,21 @@ import streamlit as st
 import json
 import re
 
-# Custom Query Language Functions
-databases = {
-    "employee_db": {
-        "tables": {
-            "emp_table": [
-                {"name": "Alice", "id": 101},
-                {"name": "Bob", "id": 102},
-                {"name": "Tick", "id": 103},
-                {"name": "Ricky", "id": 104}
-            ],
-            "dept_table": [
-                {"name": "Alice", "class": "Math", "section": "A"},
-                {"name": "Bob", "class": "Science", "section": "B"},
-                {"name": "Sam", "class": "Biology", "section": "C"},
-                {"name": "Ram", "class": "Chemistry", "section": "D"}
-            ],
-            "sal_table": [
-                {"id": 101, "salary": 10000},
-                {"id": 102, "salary": 12000},
-                {"id": 103, "salary": 15000},
-                {"id": 104, "salary": 20000}
-            ],
-            "Job": [
-                {"name": "Alice",
-                 "reviews": [
-                     {"manager_name": "Hinu", "review": "Good"},
-                     {"manager_name": "Ram", "review": "Excellent"}
-                 ]
-                },
-                {"name": "Bob",
-                 "reviews": [
-                     {"manager_name": "Ramesh", "review": "Bad"},
-                     {"manager_name": "Arjun", "review": "Excellent"}
-                 ]
-                },
-                {"name": "Tick",
-                 "reviews": [
-                     {"manager_name": "Shyam", "review": "Good"},
-                     {"manager_name": "Shinu", "review": "Excellent"}
-                 ]
-                },
-                {"name": "Ricky",
-                 "reviews": [
-                     {"manager_name": "Yogesh", "review": "Good"},
-                     {"manager_name": "Rishi", "review": "Excellent"}
-                 ]
-                }
-            ],
-            "store_sales":[
-                {"name": "Alice",
-                 "sales":[
-                     {"store_name":"A", "store_revenue":200000},
-                     {"store_name":"B", "store_revenue":400000},
-                     {"store_name":"C", "store_revenue":500000}
-                 ]
-                },
-                {"name": "Bob",
-                 "sales":[
-                     {"store_name":"A", "store_revenue":200000},
-                     {"store_name":"B", "store_revenue":600000},
-                     {"store_name":"C", "store_revenue":900000}
-                 ]
-                },
-                {"name":"Tick",
-                 "sales":[
-                     {"store_name":"A", "store_revenue":200000},
-                     {"store_name":"B", "store_revenue":300000},
-                     {"store_name":"C", "store_revenue":50000}
-                 ]
-                },
-                {"name":"Ricky",
-                 "sales":[
-                     {"store_name":"A", "store_revenue":200000},
-                     {"store_name":"B", "store_revenue":100000},
-                     {"store_name":"C", "store_revenue":30000}
-                 ]
-                }
+# Function to load JSON data from a file
+def load_json_data(file_path):
+    with open(file_path, 'r') as file:
+        return json.load(file)
 
-            ]
-        }
-    }
-}
+# Function to save JSON data to a file
+def save_json_data(file_path, data):
+    with open(file_path, 'w') as file:
+        json.dump(data, file, indent=4)
+
+# File path to the JSON data
+file_path = 'databases.json'
+
+# Load the JSON data
+databases = load_json_data(file_path)
 
 def update_field_value(databases, database_name, table_name, keyvalue_pair, change_field, change_to):
     db_data = databases.get(database_name, {}).get("tables", {})
@@ -104,6 +37,8 @@ def update_field_value(databases, database_name, table_name, keyvalue_pair, chan
     if updated:
         st.success("Table updated successfully.")
         st.write(databases[database_name]["tables"][table_name])
+        # Save the modified data back to the file
+        save_json_data(file_path, databases)
     else:
         st.warning("No rows matched the condition, table not updated.")
 
@@ -113,6 +48,8 @@ def update_table_name(databases, database_name, table_name, change_to_name):
         if "tables" in db and table_name in db["tables"]:
             db["tables"][change_to_name] = db["tables"].pop(table_name)
             st.success(f"Table name changed from '{table_name}' to '{change_to_name}' in database '{database_name}'.")
+            # Save the modified data back to the file
+            save_json_data(file_path, databases)
         else:
             st.error(f"Table '{table_name}' not found in database '{database_name}'.")
     else:
@@ -127,10 +64,27 @@ def update_field_name(databases, database_name, table_name, field_name, change_t
                 if field_name in row:
                     row[change_to_name] = row.pop(field_name)
             st.success(f"Field name changed from '{field_name}' to '{change_to_name}' in table '{table_name}' within database '{database_name}'.")
+            # Save the modified data back to the file
+            save_json_data(file_path, databases)
         else:
             st.error(f"Table '{table_name}' not found in database '{database_name}'.")
     else:
         st.error(f"Database '{database_name}' not found.")
+
+def show_table_content(databases, database_name, table_name):
+    db_data = databases.get(database_name, {}).get("tables", {})
+    table_data = db_data.get(table_name, None)
+    if not table_data:
+        st.error(f"Table {table_name} not found in database {database_name}.")
+        return
+
+    st.write(f"Content of table '{table_name}' in database '{database_name}':")
+    st.json(table_data)
+
+def show_databases(databases):
+    db_names = list(databases.keys())
+    st.write("Databases:")
+    st.json(db_names)
 
 def update_table(database_name, table_name, keyvalue_pair, change_field, change_to):
     update_field_value(databases, database_name, table_name, keyvalue_pair, change_field, change_to)
@@ -164,6 +118,12 @@ def parse_update_query(databases, query):
 
     change_field_name_match = re.match(
         r"UPDATE\s+(\w+)\s+CHANGE\s+FIELD\s+NAME\s+(\w+)\s+TO\s+(\w+)",
+        remaining_query,
+        re.IGNORECASE
+    )
+
+    show_table_match = re.match(
+        r"SHOW\s+TABLE\s+(\w+)",
         remaining_query,
         re.IGNORECASE
     )
@@ -211,6 +171,17 @@ def parse_update_query(databases, query):
         change_field_name_to = change_field_name_match.group(3).strip()
         change_field_name(database_name, table_name, field_name, change_field_name_to)
 
+    elif show_table_match:
+        table_name = show_table_match.group(1).strip()
+        show_table_content(databases, database_name, table_name)
+
+    else:
+        st.error("Invalid query format.")
+
+def parse_show_databases_query(databases, query):
+    show_databases_match = re.match(r"SHOW\s+DATABASES;", query, re.IGNORECASE)
+    if show_databases_match:
+        show_databases(databases)
     else:
         st.error("Invalid query format.")
 
@@ -223,7 +194,10 @@ query = st.text_area("Enter your query:", height=100)
 # Button to execute the query
 if st.button("Execute Query"):
     if query:
-        parse_update_query(databases, query)
+        if query.strip().upper().startswith("SHOW DATABASES;"):
+            parse_show_databases_query(databases, query)
+        else:
+            parse_update_query(databases, query)
     else:
         st.warning("Please enter a query.")
 
