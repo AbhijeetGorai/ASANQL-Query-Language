@@ -1,0 +1,81 @@
+{
+    "databases": {
+        "employee_db": {
+            "emp_table": [
+                {"name": "Alice", "id": 101},
+                {"name": "Bob", "id": 102},
+                {"name": "Tick", "id": 103},
+                {"name": "Ricky", "id": 104}
+            ],
+            "dept_table": [
+                {"name": "Alice", "class": "Math", "section": "A"},
+                {"name": "Bob", "class": "Science", "section": "B"},
+                {"name": "Sam", "class": "Biology", "section": "C"},
+                {"name": "Ram", "class": "Chemistry", "section": "D"}
+            ],
+            "sal_table": [
+                {"id": 101, "salary": 10000},
+                {"id": 102, "salary": 12000},
+                {"id": 103, "salary": 15000},
+                {"id": 104, "salary": 20000}
+            ],
+            "Job": [
+                {"name": "Alice",
+                 "reviews": [
+                     {"manager_name": "Hinu", "review": "Good"},
+                     {"manager_name": "Ram", "review": "Excellent"}
+                 ]
+                },
+                {"name": "Bob",
+                 "reviews": [
+                     {"manager_name": "Ramesh", "review": "Bad"},
+                     {"manager_name": "Arjun", "review": "Excellent"}
+                 ]
+                },
+                {"name": "Tick",
+                 "reviews": [
+                     {"manager_name": "Shyam", "review": "Good"},
+                     {"manager_name": "Shinu", "review": "Excellent"}
+                 ]
+                },
+                {"name": "Ricky",
+                 "reviews": [
+                     {"manager_name": "Yogesh", "review": "Good"},
+                     {"manager_name": "Rishi", "review": "Excellent"}
+                 ]
+                }
+            ],
+            "store_sales":[
+                {"name": "Alice",
+                 "sales":[
+                     {"store_name":"A", "store_revenue":200000},
+                     {"store_name":"B", "store_revenue":400000},
+                     {"store_name":"C", "store_revenue":500000}
+                 ]
+                },
+                {"name": "Bob",
+                 "sales":[
+                     {"store_name":"A", "store_revenue":200000},
+                     {"store_name":"B", "store_revenue":600000},
+                     {"store_name":"C", "store_revenue":900000}
+                 ]
+                },
+                {"name":"Tick",
+                 "sales":[
+                     {"store_name":"A", "store_revenue":200000},
+                     {"store_name":"B", "store_revenue":300000},
+                     {"store_name":"C", "store_revenue":50000}
+                 ]
+                },
+                {"name":"Ricky",
+                 "sales":[
+                     {"store_name":"A", "store_revenue":200000},
+                     {"store_name":"B", "store_revenue":100000},
+                     {"store_name":"C", "store_revenue":30000}
+                 ]
+                }
+
+            ]
+        }
+    }
+}
