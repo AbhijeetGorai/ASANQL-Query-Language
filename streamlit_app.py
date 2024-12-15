@@ -188,7 +188,7 @@ def parse_show_databases_query(query):
         st.error("Invalid query format.")
 
 # Set the title of the app
-st.title("JSON Database Management")
+st.title("ASANQL Query Langauge")
 
 # Input box for entering queries
 query = st.text_area("Enter your query:", height=100)
