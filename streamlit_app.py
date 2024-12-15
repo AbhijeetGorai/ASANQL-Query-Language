@@ -18,8 +18,8 @@ file_path = 'data1.json'
 # Load the JSON data
 databases = load_json_data(file_path)
 
-def update_field_value(databases, database_name, table_name, keyvalue_pair, change_field, change_to):
-    db_data = databases.get(database_name, {}).get("tables", {})
+def update_field_value(database_name, table_name, keyvalue_pair, change_field, change_to):
+    db_data = databases.get("databases", {}).get(database_name, {})
     table_data = db_data.get(table_name, None)
     if not table_data:
         st.error(f"Table {table_name} not found in database {database_name}.")
@@ -36,17 +36,18 @@ def update_field_value(databases, database_name, table_name, keyvalue_pair, chan
 
     if updated:
         st.success("Table updated successfully.")
-        st.write(databases[database_name]["tables"][table_name])
+        st.write(databases["databases"][database_name][table_name])
         # Save the modified data back to the file
         save_json_data(file_path, databases)
     else:
         st.warning("No rows matched the condition, table not updated.")
 
-def update_table_name(databases, database_name, table_name, change_to_name):
-    if database_name in databases:
-        db = databases[database_name]
-        if "tables" in db and table_name in db["tables"]:
-            db["tables"][change_to_name] = db["tables"].pop(table_name)
+def update_table_name(database_name, table_name, change_to_name):
+    if database_name in databases["databases"]:
+        db = databases["databases"][database_name]
+        if table_name in db:
+            # Rename the table
+            db[change_to_name] = db.pop(table_name)
             st.success(f"Table name changed from '{table_name}' to '{change_to_name}' in database '{database_name}'.")
             # Save the modified data back to the file
             save_json_data(file_path, databases)
@@ -55,13 +56,14 @@ def update_table_name(databases, database_name, table_name, change_to_name):
     else:
         st.error(f"Database '{database_name}' not found.")
 
-def update_field_name(databases, database_name, table_name, field_name, change_to_name):
-    if database_name in databases:
-        db = databases[database_name]
-        if "tables" in db and table_name in db["tables"]:
-            table = db["tables"][table_name]
+def update_field_name(database_name, table_name, field_name, change_to_name):
+    if database_name in databases["databases"]:
+        db = databases["databases"][database_name]
+        if table_name in db:
+            table = db[table_name]
             for row in table:
                 if field_name in row:
+                    # Rename the field in each row
                     row[change_to_name] = row.pop(field_name)
             st.success(f"Field name changed from '{field_name}' to '{change_to_name}' in table '{table_name}' within database '{database_name}'.")
             # Save the modified data back to the file
@@ -71,8 +73,8 @@ def update_field_name(databases, database_name, table_name, field_name, change_t
     else:
         st.error(f"Database '{database_name}' not found.")
 
-def show_table_content(databases, database_name, table_name):
-    db_data = databases.get(database_name, {}).get("tables", {})
+def show_table_content(database_name, table_name):
+    db_data = databases.get("databases", {}).get(database_name, {})
     table_data = db_data.get(table_name, None)
     if not table_data:
         st.error(f"Table {table_name} not found in database {database_name}.")
@@ -81,21 +83,21 @@ def show_table_content(databases, database_name, table_name):
     st.write(f"Content of table '{table_name}' in database '{database_name}':")
     st.json(table_data)
 
-def show_databases(databases):
-    db_names = list(databases.keys())
+def show_databases():
+    db_names = list(databases.get("databases", {}).keys())
     st.write("Databases:")
     st.json(db_names)
 
 def update_table(database_name, table_name, keyvalue_pair, change_field, change_to):
-    update_field_value(databases, database_name, table_name, keyvalue_pair, change_field, change_to)
+    update_field_value(database_name, table_name, keyvalue_pair, change_field, change_to)
 
 def change_table_name(database_name, table_name, change_name_to):
-    update_table_name(databases, database_name, table_name, change_name_to)
+    update_table_name(database_name, table_name, change_name_to)
 
 def change_field_name(database_name, table_name, field_name, change_field_name_to):
-    update_field_name(databases, database_name, table_name, field_name, change_field_name_to)
+    update_field_name(database_name, table_name, field_name, change_field_name_to)
 
-def parse_update_query(databases, query):
+def parse_update_query(query):
     database_match = re.match(r"USE\s+(\w+)\s+", query, re.IGNORECASE)
     if not database_match:
         st.error("Database name not found in the query.")
@@ -173,15 +175,15 @@ def parse_update_query(databases, query):
 
     elif show_table_match:
         table_name = show_table_match.group(1).strip()
-        show_table_content(databases, database_name, table_name)
+        show_table_content(database_name, table_name)
 
     else:
         st.error("Invalid query format.")
 
-def parse_show_databases_query(databases, query):
+def parse_show_databases_query(query):
     show_databases_match = re.match(r"SHOW\s+DATABASES;", query, re.IGNORECASE)
     if show_databases_match:
-        show_databases(databases)
+        show_databases()
     else:
         st.error("Invalid query format.")
 
@@ -195,9 +197,9 @@ query = st.text_area("Enter your query:", height=100)
 if st.button("Execute Query"):
     if query:
         if query.strip().upper().startswith("SHOW DATABASES;"):
-            parse_show_databases_query(databases, query)
+            parse_show_databases_query(query)
         else:
-            parse_update_query(databases, query)
+            parse_update_query(query)
     else:
         st.warning("Please enter a query.")
 
