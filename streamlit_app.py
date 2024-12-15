@@ -196,10 +196,11 @@ query = st.text_area("Enter your query:", height=100)
 # Button to execute the query
 if st.button("Execute Query"):
     if query:
-        if query.strip().upper().startswith("SHOW DATABASES;"):
-            parse_show_databases_query(query)
-        else:
-            parse_update_query(query)
+        with st.spinner('Processing...'):
+            if query.strip().upper().startswith("SHOW DATABASES;"):
+                parse_show_databases_query(query)
+            else:
+                parse_update_query(query)
     else:
         st.warning("Please enter a query.")
 
