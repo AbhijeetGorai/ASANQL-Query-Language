@@ -98,7 +98,7 @@ def change_field_name(database_name, table_name, field_name, change_field_name_t
     update_field_name(database_name, table_name, field_name, change_field_name_to)
 
 def parse_update_query(query):
-    database_match = re.match(r"USE\s+(\w+)\s+", query, re.IGNORECASE)
+    database_match = re.match(r"USE\s+DATABASE\s+(\w+)\s+", query, re.IGNORECASE)
     if not database_match:
         st.error("Database name not found in the query.")
         return
@@ -188,7 +188,7 @@ def parse_show_databases_query(query):
         st.error("Invalid query format.")
 
 # Set the title of the app
-st.title("ASANQL Query Langauge")
+st.title("ASANQL Query Language")
 
 # Input box for entering queries
 query = st.text_area("Enter your query:", height=100)
