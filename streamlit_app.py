@@ -966,9 +966,19 @@ def main():
     # Execute button
     if st.button("Execute"):
         result = execute_query(query)
-        st.markdown("### Query Result")
-        st.markdown("---------------------")
-        st.json(result)
+        if isinstance(result, (list, dict)):
+            st.markdown("### Query Result")
+            st.markdown("---------------------")
+            st.json(result)
+        elif isinstance(result, str):
+            st.markdown("### Query Result")
+            st.markdown("---------------------")
+            st.text(result)
+        else:
+            st.markdown("### Query Result")
+            st.markdown("---------------------")
+            st.text("No result returned.")
+
         st.markdown("### Current database structure")
         st.json(databases)
 
