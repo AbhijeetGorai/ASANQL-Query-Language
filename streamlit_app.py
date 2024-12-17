@@ -919,17 +919,18 @@ def list_all_databases():
 # Function to call the relevant parsing function based on the query
 # Function to call the relevant parsing function based on the query
 def execute_query(query):
+    result = None
     if query.startswith("USE DATABASE"):
         if "FIND" in query:
-            parse_query(query)
+            result = parse_query(query)
         elif "UPDATE" in query:
-            parse_update_query(query)
+            result = parse_update_query(query)
         elif "DELETE" in query:
-            execute_delete_query(query)
+            result = execute_delete_query(query)
         elif "ALTER" in query:
-            alter_execute_query(query)
+            result = alter_execute_query(query)
         elif "CREATE" in query:
-            parse_create_table_query(query)
+            result = parse_create_table_query(query)
         elif "SHOW TABLE" in query:
             # Extract database name and table name
             db_name_match = re.search(r'USE DATABASE (\w+)', query)
@@ -937,19 +938,20 @@ def execute_query(query):
             if db_name_match and table_name_match:
                 database_name = db_name_match.group(1)
                 table_name = table_name_match.group(1)
-                show_table_content(database_name, table_name)
+                result = show_table_content(database_name, table_name)
             else:
                 print("Invalid query format for showing table content.")
         else:
             print("Invalid query format.")
     elif query.startswith("CREATE DATABASE"):
-        parse_create_database_query(query)
+        result = parse_create_database_query(query)
     elif query.startswith("DELETE DATABASE"):
-        execute_delete_query(query)
+        result = execute_delete_query(query)
     elif query.startswith("SHOW DATABASES"):
-        list_all_databases()
+        result = list_all_databases()
     else:
         print("Invalid query format.")
+    return result
 
 # Streamlit app
 def main():
@@ -966,6 +968,7 @@ def main():
         result = execute_query(query)
         st.markdown("### Query Result")
         st.markdown("---------------------")
+        st.json(result)
         st.markdown("### Current database structure")
         st.json(databases)
 
