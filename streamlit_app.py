@@ -1,6 +1,6 @@
-import re
-import json
 import streamlit as st
+import json
+import re
 
 # Global variable to store the database
 databases = {}
@@ -917,12 +917,11 @@ def list_all_databases():
         print(db_name)
 
 # Function to call the relevant parsing function based on the query
+# Function to call the relevant parsing function based on the query
 def execute_query(query):
     if query.startswith("USE DATABASE"):
         if "FIND" in query:
-            result = parse_query(query)
-            st.success("Results of the query:")
-            st.json(result)
+            parse_query(query)
         elif "UPDATE" in query:
             parse_update_query(query)
         elif "DELETE" in query:
@@ -940,9 +939,9 @@ def execute_query(query):
                 table_name = table_name_match.group(1)
                 show_table_content(database_name, table_name)
             else:
-                st.error("Invalid query format for showing table content.")
+                print("Invalid query format for showing table content.")
         else:
-            st.error("Invalid query format.")
+            print("Invalid query format.")
     elif query.startswith("CREATE DATABASE"):
         parse_create_database_query(query)
     elif query.startswith("DELETE DATABASE"):
@@ -950,29 +949,28 @@ def execute_query(query):
     elif query.startswith("SHOW DATABASES"):
         list_all_databases()
     else:
-        st.error("Invalid query format.")
+        print("Invalid query format.")
 
-# Streamlit interface
-st.title("Database Query Interface")
+# Streamlit app
+def main():
+    st.title("Database Query Interface")
 
-# Input box for the query
-query = st.text_area("Enter your query:", height=150, key="query_box")
-
-# Execute button
-if st.button("Execute", key="execute_button"):
-    # Load the database from a JSON file
+    # Load the database
     load_database('data1.json')
 
-    # Execute the query
-    execute_query(query)
+    # Query input box
+    query = st.text_input("Enter your query:", "")
 
-    # Save the database to a JSON file
+    # Execute button
+    if st.button("Execute"):
+        result = execute_query(query)
+        st.markdown("### Query Result")
+        st.markdown("---------------------")
+        st.markdown("### Current database structure")
+        st.json(databases)
+
+    # Save the database
     save_database('data1.json')
 
-    # Display the full database structure
-    st.subheader("Full Database Structure:")
-    st.json(databases)
-
-# Run the Streamlit app
 if __name__ == "__main__":
-    st.write("Streamlit app is running...")
+    main()
