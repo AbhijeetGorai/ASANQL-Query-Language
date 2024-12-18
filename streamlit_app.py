@@ -930,7 +930,6 @@ def main():
             try:
                 result = execute_query(query)
                 st.success(result)  # Display the query result as a success message
-                st.json(databases, expanded=False)  # Display the updated database structure
             except Exception as e:
                 st.error(f"Error: {e}")
         else:
