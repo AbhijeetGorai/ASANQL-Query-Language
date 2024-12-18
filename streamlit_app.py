@@ -929,13 +929,16 @@ def main():
         if query.strip():
             try:
                 result = execute_query(query)
-                st.text_area("Query Result", result, height=300, key="result_area")
-                st.json(databases, expanded=False)
-                st.success("Table updated or altered successfully.")
+                st.success(result)  # Display the query result as a success message
+                st.json(databases, expanded=False)  # Display the updated database structure
             except Exception as e:
                 st.error(f"Error: {e}")
         else:
             st.error("Please enter a query to execute.")
+
+    # Display the database structure permanently
+    st.json(databases, expanded=False)
+
 
 # Load the database from a JSON file
 load_database('data1.json')
