@@ -918,6 +918,12 @@ def execute_query(query):
     else:
         return "Invalid query format."
 
+# Load the database from a JSON file
+load_database('data1.json')
+
+# Save the database to a JSON file
+save_database('data1.json')
+
 def main():
     st.title("Database Query Interface")
 
@@ -937,13 +943,6 @@ def main():
 
     # Display the database structure permanently
     st.json(databases, expanded=False)
-
-
-# Load the database from a JSON file
-load_database('data1.json')
-
-# Save the database to a JSON file
-save_database('data1.json')
 
 if __name__ == "__main__":
     main()
