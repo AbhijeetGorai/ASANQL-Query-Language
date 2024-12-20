@@ -24,8 +24,8 @@ def evaluate_condition(row, condition):
         field, value = field.strip(), value.strip().strip("'")
         field_value = row.get(field)
         if isinstance(field_value, list):
-          # If the value is present inside a list
-          return value in field_value
+            # If the value is present inside a list
+            return value in field_value
         else:
             return str(field_value) == value
     elif "NOT IS" in condition:
@@ -33,8 +33,8 @@ def evaluate_condition(row, condition):
         field, value = field.strip(), value.strip().strip("'")
         field_value = row.get(field)
         if isinstance(field_value, list):
-          # If the value is present inside a list
-          return value not in field_value
+            # If the value is present inside a list
+            return value not in field_value
         else:
             return str(field_value) != value
     # Handle 'HAS' and 'NOT HAS'
@@ -44,8 +44,8 @@ def evaluate_condition(row, condition):
         values = eval(values.strip())  # Convert the string representation of the list into an actual list
         field_value = row.get(field)
         if isinstance(field_value, list):
-          # If the value is present inside a list
-          return all(v in field_value for v in values)
+            # If the value is present inside a list
+            return all(v in field_value for v in values)
         else:
             return any(str(field_value) == v for v in values)
     elif "NOT HAS" in condition:
@@ -54,41 +54,41 @@ def evaluate_condition(row, condition):
         values = eval(values.strip())  # Convert the string representation of the list into an actual list
         field_value = row.get(field)
         if isinstance(field_value, list):
-          return all(v in field_value for v in values)
+            return all(v in field_value for v in values)
         else:
             return all(str(field_value) != v for v in values)
     return False
 
 def where_filter(where_clause, joined_data):
-  filtered_list1 = []
-  count = 0
-  and_cond = []
-  and_count = 0
-  and_list, or_list = separate_conditions(where_clause)
-  if len(and_list) == 0 or len(or_list) == 0:
-    for row in joined_data:
-      res = evaluate_condition(row, where_clause)
-      if res == True:
-        filtered_list1.append(row)
-  else:
-    and_count = len(and_list)
-    for row in joined_data:
-      for i in and_list:
-        result = evaluate_condition(row, i)
-        if result == True:
-          count = count + 1
-          and_cond.append(row)
-      for i in or_list:
-        result = evaluate_condition(row, i)
-        if result == True:
-          filtered_list1.append(row)
-  if count != and_count:
-    print("Not passed")
-  else:
-    for i in and_cond:
-      filtered_list1.append(i)
-  filtered_list1 = [dict(t) for t in {tuple(d.items()) for d in filtered_list1}]
-  return filtered_list1
+    filtered_list1 = []
+    count = 0
+    and_cond = []
+    and_count = 0
+    and_list, or_list = separate_conditions(where_clause)
+    if len(and_list) == 0 or len(or_list) == 0:
+        for row in joined_data:
+            res = evaluate_condition(row, where_clause)
+            if res == True:
+                filtered_list1.append(row)
+    else:
+        and_count = len(and_list)
+        for row in joined_data:
+            for i in and_list:
+                result = evaluate_condition(row, i)
+                if result == True:
+                    count = count + 1
+                    and_cond.append(row)
+            for i in or_list:
+                result = evaluate_condition(row, i)
+                if result == True:
+                    filtered_list1.append(row)
+    if count != and_count:
+        print("Not passed")
+    else:
+        for i in and_cond:
+            filtered_list1.append(i)
+    filtered_list1 = [dict(t) for t in {tuple(d.items()) for d in filtered_list1}]
+    return filtered_list1
 
 def separate_conditions(where_clause):
     and_conditions = []
@@ -210,6 +210,7 @@ def check_and_flatten_json_table(table_data):
                 break  # Exit loop if a JSON list is found
         if contains_json_list:
             break
+
     # If a JSON list is found, flatten the table
     if contains_json_list:
         return True
@@ -278,7 +279,7 @@ def parse_query(query):
 
     # Condition for checking if the WITH clause is present if more than 1 table is present
     if len(table_names) > 1 and with_clause == 0:
-      return "Include WITH clause for joining 2 tables"
+        return "Include WITH clause for joining 2 tables"
     # Validate tables
     table_metadata = databases["databases"][database_name]
     for table_name in table_names:
@@ -286,13 +287,13 @@ def parse_query(query):
             return f"Table '{table_name}' not found in database '{database_name}'."
 
     for table_name in table_names:
-      table_data = databases["databases"][database_name].get(table_name)
-      json_check = check_and_flatten_json_table(table_data)
-      if json_check:
-        table_results = flatten_and_filter_nested_json(table_data)
-        table_metadata[table_name] = table_results
-      else:
-        continue
+        table_data = databases["databases"][database_name].get(table_name)
+        json_check = check_and_flatten_json_table(table_data)
+        if json_check:
+            table_results = flatten_and_filter_nested_json(table_data)
+            table_metadata[table_name] = table_results
+        else:
+            continue
     # Fetch the table data
     joined_data = table_metadata[table_names[0]]
 
@@ -376,19 +377,19 @@ def parse_query(query):
 
     filtered_result = []
     if where_clause:
-      res1 = where_filter(where_clause, joined_data)
-      filtered_result = res1
+        res1 = where_filter(where_clause, joined_data)
+        filtered_result = res1
     else:
-      filtered_result = joined_data
+        filtered_result = joined_data
 
     joined_data = filtered_result
     # Step 4: Perform Aggregations
     # Define Aggregates
     aggregates = ["ITS COMBINED", "COUNT THE", "MAXIMUM", "MINIMUM", "AVERAGE"]
     for i in fields:
-      for j in aggregates:
-        if j in i:
-          joined_data = perform_aggregation(joined_data, i, fields)
+        for j in aggregates:
+            if j in i:
+                joined_data = perform_aggregation(joined_data, i, fields)
 
     # Step 5: Filter results based on FIND fields
     if not select_all:
@@ -425,9 +426,10 @@ def update_field_value(database_name, table_name, keyvalue_pair, change_field, c
                 return f"Field '{change_field}' not found in row: {row}"
 
     if updated:
-      return f"Table updated successfully.\n{databases['databases'][database_name][table_name]}"
+        save_database('data1.json')  # Save the database after update
+        return f"Table updated successfully.\n{databases['databases'][database_name][table_name]}"
     else:
-      return "No rows matched the condition, table not updated."
+        return "No rows matched the condition, table not updated."
 
 def update_table_name(database_name, table_name, change_to_name):
     if database_name in databases["databases"]:
@@ -435,6 +437,7 @@ def update_table_name(database_name, table_name, change_to_name):
         if table_name in db:
             # Rename the table
             db[change_to_name] = db.pop(table_name)
+            save_database('data1.json')  # Save the database after update
             return f"Table name changed from '{table_name}' to '{change_to_name}' in database '{database_name}'."
         else:
             return f"Table '{table_name}' not found in database '{database_name}'."
@@ -450,6 +453,7 @@ def update_field_name(database_name, table_name, field_name, change_to_name):
                 if field_name in row:
                     # Rename the field in each row
                     row[change_to_name] = row.pop(field_name)
+            save_database('data1.json')  # Save the database after update
             return f"Field name changed from '{field_name}' to '{change_to_name}' in table '{table_name}' within database '{database_name}'."
         else:
             return f"Table '{table_name}' not found in database '{database_name}'."
@@ -650,6 +654,7 @@ def add_field_to_table(db_name, table_name, new_field_name, new_value, where_cla
         else:
             for record in table:
                 record[new_field_name] = new_value
+        save_database('data1.json')  # Save the database after update
     else:
         return "Invalid query or parameters."
 
@@ -666,6 +671,7 @@ def add_nested_field_to_table(db_name, table_name, list_name, values, where_clau
         else:
             for record in table:
                 record[list_name] = values
+        save_database('data1.json')  # Save the database after update
     else:
         return "Invalid query or parameters."
 
@@ -730,6 +736,7 @@ def delete_parse_query(query):
 def delete_database(db_name):
     if db_name in databases["databases"]:
         del databases["databases"][db_name]
+        save_database('data1.json')  # Save the database after update
         return f"Database '{db_name}' deleted successfully."
     else:
         return f"Database '{db_name}' not found."
@@ -739,6 +746,7 @@ def delete_table(db_name, table_name):
         db = databases["databases"][db_name]
         if table_name in db:
             del db[table_name]
+            save_database('data1.json')  # Save the database after update
             return f"Table '{table_name}' deleted successfully from database '{db_name}'."
         else:
             return f"Table '{table_name}' not found in database '{db_name}'."
@@ -753,6 +761,7 @@ def delete_field(db_name, table_name, field_name):
             for record in table:
                 if field_name in record:
                     del record[field_name]
+            save_database('data1.json')  # Save the database after update
             return f"Field '{field_name}' deleted successfully from table '{table_name}' in database '{db_name}'."
         else:
             return f"Table '{table_name}' not found in database '{db_name}'."
@@ -769,6 +778,7 @@ def delete_field_within_list(db_name, table_name, field_name, list_name):
                     for item in record[list_name]:
                         if field_name in item:
                             del item[field_name]
+            save_database('data1.json')  # Save the database after update
             return f"Field '{field_name}' within list '{list_name}' deleted successfully from table '{table_name}' in database '{db_name}'."
         else:
             return f"Table '{table_name}' not found in database '{db_name}'."
@@ -783,6 +793,7 @@ def delete_list_field(db_name, table_name, list_field_name):
             for record in table:
                 if list_field_name in record:
                     del record[list_field_name]
+            save_database('data1.json')  # Save the database after update
             return f"List field '{list_field_name}' deleted successfully from table '{table_name}' in database '{db_name}'."
         else:
             return f"Table '{table_name}' not found in database '{db_name}'."
@@ -818,6 +829,7 @@ def create_table_in_database(database_name, table_name, value_row):
 
     # Create the new table with the given value row
     databases["databases"][database_name][table_name] = [value_row]
+    save_database('data1.json')  # Save the database after update
     return f"Table '{table_name}' created in database '{database_name}' with values: {value_row}"
 
 def parse_create_table_query(query):
@@ -855,6 +867,7 @@ def create_database(database_name):
 
     # Create the new database
     databases["databases"][database_name] = {}
+    save_database('data1.json')  # Save the database after update
     return f"Database '{database_name}' created."
 
 def parse_create_database_query(query):
