@@ -78,11 +78,11 @@ def where_filter(where_clause, joined_data):
                 result = evaluate_condition(row, i)
                 if result == True:
                     filtered_list1.append(row)
-    if count != and_count:
-        print("Not passed")
-    else:
-        for i in and_cond:
-            filtered_list1.append(i)
+        if count != and_count:
+            print("Not passed")
+        else:
+            for i in and_cond:
+                filtered_list1.append(i)
     filtered_list1 = [dict(t) for t in {tuple(d.items()) for d in filtered_list1}]
     return filtered_list1
 
