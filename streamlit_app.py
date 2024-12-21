@@ -1,10 +1,6 @@
 import re
 import json
 import streamlit as st
-
-# Define the global databases variable
-databases = {"databases": {}}
-
 # Function to load the database from a JSON file
 def load_database(file_path):
     global databases
@@ -951,30 +947,33 @@ def execute_query(query):
     else:
         print("Invalid query format.")
 
-# Load the database from a JSON file
-load_database('data1.json')
 
-# Streamlit interface
-st.title("Database Query Interface")
+# Streamlit app
+def main():
+    st.title("Database Query Executor")
 
-# Input box for the query
-query = st.text_input("Enter your query:")
+    # Step 1: Load the database
+    database_file = 'data1.json'
+    database = load_database(database_file)
 
-# Button to execute the query
-if st.button("Execute Query"):
-    if query:
+    # Step 2: Query Execution
+    query = st.text_input("Enter your query (e.g., SHOW DATABASES):")
+
+    if st.button("Execute"):
         # Execute the query
-        execute_query(query)
+        result = execute_query(database, query)
 
-        # Display the query result
+        # Step 3: Save the updated database
+        save_database(database_file)
+
+        # Display query result
         st.subheader("Query Result:")
-        st.write(query)
+        st.json(result)
 
-        # Display the updated database structure
+        # Display updated database structure
         st.subheader("Updated Database Structure:")
-        st.json(databases)
-    else:
-        st.warning("Please enter a query.")
+        st.json(database)
 
-# Save the database to a JSON file
-save_database('data1.json')
+if __name__ == "__main__":
+    main()
+
