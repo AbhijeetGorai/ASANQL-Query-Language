@@ -1,17 +1,16 @@
 import re
 import json
 import streamlit as st
-
 # Function to load the database from a JSON file
 def load_database(file_path):
-    global databases
     with open(file_path, 'r') as file:
+        global databases
         databases = json.load(file)
 
 # Function to save the database to a JSON file
-def save_database(file_path, data):
+def save_database(file_path):
     with open(file_path, 'w') as file:
-        json.dump(data, file, indent=4)
+        json.dump(databases, file, indent=4)
 
 # Helper function to evaluate conditions
 def evaluate_condition(row, condition):
@@ -80,7 +79,7 @@ def where_filter(where_clause, joined_data):
         if result == True:
           filtered_list1.append(row)
   if count != and_count:
-    return "Not passed"
+    print("Not passed")
   else:
     for i in and_cond:
       filtered_list1.append(i)
@@ -681,7 +680,7 @@ def alter_execute_query(query):
     # Print the updated table structure
     if db_name in databases["databases"] and table_name in databases["databases"][db_name]:
         table = databases["databases"][db_name][table_name]
-        return f"\nUpdated {table_name} table in {db_name} database:\n{json.dumps(table, indent=4)}"
+        return f"\nUpdated {table_name} table in {db_name} database:\n{table}"
 
 # Delete function begins from here
 
@@ -882,7 +881,7 @@ def show_table_content(database_name, table_name):
         db = databases["databases"][database_name]
         if table_name in db:
             table = db[table_name]
-            return f"Content of table '{table_name}' in database '{database_name}':\n{json.dumps(table, indent=4)}"
+            return f"Content of table '{table_name}' in database '{database_name}':\n{table}"
         else:
             return f"Table '{table_name}' not found in database '{database_name}'."
     else:
@@ -890,7 +889,7 @@ def show_table_content(database_name, table_name):
 
 # Function to list all database names
 def list_all_databases():
-    return f"Databases:\n{json.dumps(list(databases['databases'].keys()), indent=4)}"
+    return "Databases:\n" + "\n".join(databases["databases"].keys())
 
 # Function to call the relevant parsing function based on the query
 def execute_query(query):
@@ -925,31 +924,32 @@ def execute_query(query):
         return list_all_databases()
     else:
         return "Invalid query format."
-        
-database_file = 'data1.json'
-# Streamlit app
-def main():
-    st.title("Database Query Executor")
-    
-    database = load_database(database_file)
 
-    # Step 2: Query Execution
-    query = st.text_input("Enter your query (e.g., SHOW DATABASES):")
+# Load the database from a JSON file
+load_database('data1.json')
 
-    if st.button("Execute"):
-        # Execute the query
+# Streamlit interface
+st.title("Database Query Interface")
+
+# Input for the query
+query = st.text_area("Enter your query:", height=100)
+
+# Button to execute the query
+if st.button("Execute Query"):
+    if query:
         result = execute_query(query)
+        st.write("Query Result:")
+        st.write(result)
 
-        # Step 3: Save the updated database
-        save_database(database_file,data1.json)
+        # Save the updated database to a JSON file
+        save_database('data1.json')
 
-        # Display query result
-        st.subheader("Query Result:")
-        st.json(result)
+        # Display the updated database structure
+        st.write("Updated Database Structure:")
+        st.json(databases)
+    else:
+        st.write("Please enter a query.")
 
-        # Display updated database structure
-        st.subheader("Updated Database Structure:")
-        st.json(database)
-
-if __name__ == "__main__":
-    main()
+# Save the database to a JSON file when the app is closed
+st.write("Database saved to 'data1.json'")
+save_database('data1.json')
