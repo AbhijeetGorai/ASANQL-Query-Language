@@ -947,13 +947,11 @@ def execute_query(query):
     else:
         print("Invalid query format.")
 
-
+# Step 1: Load the database
+database_file = 'data1.json'
 # Streamlit app
 def main():
-    st.title("Database Query Executor")
-
-    # Step 1: Load the database
-    database_file = 'data1.json'
+    st.title("Database Query Executor") 
     database = load_database(database_file)
 
     # Step 2: Query Execution
