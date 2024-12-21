@@ -925,11 +925,12 @@ def execute_query(query):
         return list_all_databases()
     else:
         return "Invalid query format."
-
+        
+database_file = 'data1.json'
 # Streamlit app
 def main():
     st.title("Database Query Executor")
-    database_file = 'data1.json'
+    
     database = load_database(database_file)
 
     # Step 2: Query Execution
@@ -940,7 +941,7 @@ def main():
         result = execute_query(query)
 
         # Step 3: Save the updated database
-        save_database(database_file, databases)
+        save_database(database_file,result)
 
         # Display query result
         st.subheader("Query Result:")
