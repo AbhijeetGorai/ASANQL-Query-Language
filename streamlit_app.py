@@ -941,7 +941,7 @@ def main():
         result = execute_query(query)
 
         # Step 3: Save the updated database
-        save_database(database_file,result)
+        save_database(database_file,data1.json)
 
         # Display query result
         st.subheader("Query Result:")
