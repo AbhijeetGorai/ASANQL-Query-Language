@@ -9,9 +9,9 @@ def load_database(file_path):
         databases = json.load(file)
 
 # Function to save the database to a JSON file
-def save_database(file_path):
+def save_database(file_path, data):
     with open(file_path, 'w') as file:
-        json.dump(databases, file, indent=4)
+        json.dump(data, file, indent=4)
 
 # Helper function to evaluate conditions
 def evaluate_condition(row, condition):
@@ -926,10 +926,10 @@ def execute_query(query):
     else:
         return "Invalid query format."
 
-database_file = 'data1.json'
 # Streamlit app
 def main():
     st.title("Database Query Executor")
+    database_file = 'data1.json'
     database = load_database(database_file)
 
     # Step 2: Query Execution
@@ -940,7 +940,7 @@ def main():
         result = execute_query(query)
 
         # Step 3: Save the updated database
-        save_database(database_file)
+        save_database(database_file, databases)
 
         # Display query result
         st.subheader("Query Result:")
