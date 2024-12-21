@@ -2,6 +2,9 @@ import re
 import json
 import streamlit as st
 
+# Define the global databases variable
+databases = {"databases": {}}
+
 # Function to load the database from a JSON file
 def load_database(file_path):
     global databases
