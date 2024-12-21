@@ -3,6 +3,7 @@ import json
 import streamlit as st
 # Function to load the database from a JSON file
 def load_database(file_path):
+    global databases
     with open(file_path, 'r') as file:
         databases = json.load(file)
 
