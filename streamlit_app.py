@@ -395,7 +395,7 @@ def parse_query(query):
         joined_data = filtered_data
 
     joined_data = [dict(t) for t in {tuple(d.items()) for d in joined_data}]
-    print(joined_data)
+    return joined_data
 
 # Update function begins from here
 
@@ -688,7 +688,7 @@ def alter_execute_query(query):
         table = databases["databases"][db_name][table_name]
         print(f"\nUpdated {table_name} table in {db_name} database:")
         for record in table:
-            print(record)
+            return record
 
 # Delete function begins from here
 
