@@ -4,13 +4,14 @@ import streamlit as st
 
 # Function to load the database from a JSON file
 def load_database(file_path):
+    global databases
     with open(file_path, 'r') as file:
-        return json.load(file)
+        databases = json.load(file)
 
 # Function to save the database to a JSON file
-def save_database(file_path, data):
+def save_database(file_path):
     with open(file_path, 'w') as file:
-        json.dump(data, file, indent=4)
+        json.dump(databases, file, indent=4)
 
 # Helper function to evaluate conditions
 def evaluate_condition(row, condition):
@@ -20,8 +21,8 @@ def evaluate_condition(row, condition):
         field, value = field.strip(), value.strip().strip("'")
         field_value = row.get(field)
         if isinstance(field_value, list):
-            # If the value is present inside a list
-            return value in field_value
+          # If the value is present inside a list
+          return value in field_value
         else:
             return str(field_value) == value
     elif "NOT IS" in condition:
@@ -29,8 +30,8 @@ def evaluate_condition(row, condition):
         field, value = field.strip(), value.strip().strip("'")
         field_value = row.get(field)
         if isinstance(field_value, list):
-            # If the value is present inside a list
-            return value not in field_value
+          # If the value is present inside a list
+          return value not in field_value
         else:
             return str(field_value) != value
     # Handle 'HAS' and 'NOT HAS'
@@ -40,8 +41,8 @@ def evaluate_condition(row, condition):
         values = eval(values.strip())  # Convert the string representation of the list into an actual list
         field_value = row.get(field)
         if isinstance(field_value, list):
-            # If the value is present inside a list
-            return all(v in field_value for v in values)
+          # If the value is present inside a list
+          return all(v in field_value for v in values)
         else:
             return any(str(field_value) == v for v in values)
     elif "NOT HAS" in condition:
@@ -50,41 +51,41 @@ def evaluate_condition(row, condition):
         values = eval(values.strip())  # Convert the string representation of the list into an actual list
         field_value = row.get(field)
         if isinstance(field_value, list):
-            return all(v in field_value for v in values)
+          return all(v in field_value for v in values)
         else:
             return all(str(field_value) != v for v in values)
     return False
 
 def where_filter(where_clause, joined_data):
-    filtered_list1 = []
-    count = 0
-    and_cond = []
-    and_count = 0
-    and_list, or_list = separate_conditions(where_clause)
-    if len(and_list) == 0 or len(or_list) == 0:
-        for row in joined_data:
-            res = evaluate_condition(row, where_clause)
-            if res == True:
-                filtered_list1.append(row)
-    else:
-        and_count = len(and_list)
-        for row in joined_data:
-            for i in and_list:
-                result = evaluate_condition(row, i)
-                if result == True:
-                    count = count + 1
-                    and_cond.append(row)
-            for i in or_list:
-                result = evaluate_condition(row, i)
-                if result == True:
-                    filtered_list1.append(row)
-        if count != and_count:
-            print("Not passed")
-        else:
-            for i in and_cond:
-                filtered_list1.append(i)
-    filtered_list1 = [dict(t) for t in {tuple(d.items()) for d in filtered_list1}]
-    return filtered_list1
+  filtered_list1 = []
+  count = 0
+  and_cond = []
+  and_count = 0
+  and_list, or_list = separate_conditions(where_clause)
+  if len(and_list) == 0 or len(or_list) == 0:
+    for row in joined_data:
+      res = evaluate_condition(row, where_clause)
+      if res == True:
+        filtered_list1.append(row)
+  else:
+    and_count = len(and_list)
+    for row in joined_data:
+      for i in and_list:
+        result = evaluate_condition(row, i)
+        if result == True:
+          count = count + 1
+          and_cond.append(row)
+      for i in or_list:
+        result = evaluate_condition(row, i)
+        if result == True:
+          filtered_list1.append(row)
+  if count != and_count:
+    print("Not passed")
+  else:
+    for i in and_cond:
+      filtered_list1.append(i)
+  filtered_list1 = [dict(t) for t in {tuple(d.items()) for d in filtered_list1}]
+  return filtered_list1
 
 def separate_conditions(where_clause):
     and_conditions = []
@@ -206,7 +207,6 @@ def check_and_flatten_json_table(table_data):
                 break  # Exit loop if a JSON list is found
         if contains_json_list:
             break
-
     # If a JSON list is found, flatten the table
     if contains_json_list:
         return True
@@ -228,8 +228,7 @@ def parse_query(query):
         return "Invalid query format. 'FIND' statement is missing after database specification."
     # Extract database name
     database_name = query[use_db_index:db_end_index].strip()
-    databases = load_database('data1.json')
-    if database_name not in databases:
+    if database_name not in databases["databases"]:
         return f"Database '{database_name}' not found."
     # Step 2: Extract "FIND" fields
     find_index = query.index("FIND") + len("FIND")
@@ -276,21 +275,21 @@ def parse_query(query):
 
     # Condition for checking if the WITH clause is present if more than 1 table is present
     if len(table_names) > 1 and with_clause == 0:
-        return "Include WITH clause for joining 2 tables"
+      print("Include WITH clause for joining 2 tables")
     # Validate tables
-    table_metadata = databases[database_name]
+    table_metadata = databases["databases"][database_name]
     for table_name in table_names:
         if table_name not in table_metadata:
             return f"Table '{table_name}' not found in database '{database_name}'."
 
     for table_name in table_names:
-        table_data = databases[database_name].get(table_name)
-        json_check = check_and_flatten_json_table(table_data)
-        if json_check:
-            table_results = flatten_and_filter_nested_json(table_data)
-            table_metadata[table_name] = table_results
-        else:
-            continue
+      table_data = databases["databases"][database_name].get(table_name)
+      json_check = check_and_flatten_json_table(table_data)
+      if json_check:
+        table_results = flatten_and_filter_nested_json(table_data)
+        table_metadata[table_name] = table_results
+      else:
+        continue
     # Fetch the table data
     joined_data = table_metadata[table_names[0]]
 
@@ -374,19 +373,19 @@ def parse_query(query):
 
     filtered_result = []
     if where_clause:
-        res1 = where_filter(where_clause, joined_data)
-        filtered_result = res1
+      res1 = where_filter(where_clause, joined_data)
+      filtered_result = res1
     else:
-        filtered_result = joined_data
+      filtered_result = joined_data
 
     joined_data = filtered_result
     # Step 4: Perform Aggregations
     # Define Aggregates
     aggregates = ["ITS COMBINED", "COUNT THE", "MAXIMUM", "MINIMUM", "AVERAGE"]
     for i in fields:
-        for j in aggregates:
-            if j in i:
-                joined_data = perform_aggregation(joined_data, i, fields)
+      for j in aggregates:
+        if j in i:
+          joined_data = perform_aggregation(joined_data, i, fields)
 
     # Step 5: Filter results based on FIND fields
     if not select_all:
@@ -397,18 +396,17 @@ def parse_query(query):
         joined_data = filtered_data
 
     joined_data = [dict(t) for t in {tuple(d.items()) for d in joined_data}]
-    save_database('data1.json', databases)
-    return joined_data
+    print(joined_data)
 
 # Update function begins from here
 
 def update_field_value(database_name, table_name, keyvalue_pair, change_field, change_to):
-    databases = load_database('data1.json')
     # Locate the table in the specified database
-    db_data = databases.get(database_name, {})
+    db_data = databases.get("databases", {}).get(database_name, {})
     table_data = db_data.get(table_name, None)
     if not table_data:
-        return f"Table {table_name} not found in database {database_name}."
+        print(f"Table {table_name} not found in database {database_name}.")
+        return False
 
     # Track if any updates are made
     updated = False
@@ -422,60 +420,56 @@ def update_field_value(database_name, table_name, keyvalue_pair, change_field, c
                 row[change_field] = change_to
                 updated = True
             else:
-                return f"Field '{change_field}' not found in row: {row}"
+                print(f"Field '{change_field}' not found in row: {row}")
 
     if updated:
-        save_database('data1.json', databases)
-        return f"Table updated successfully.\n{databases[database_name][table_name]}"
+      print("Table updated successfully.")
+      print(databases["databases"][database_name][table_name])
     else:
-        return "No rows matched the condition, table not updated."
+      print("No rows matched the condition, table not updated.")
 
 def update_table_name(database_name, table_name, change_to_name):
-    databases = load_database('data1.json')
-    if database_name in databases:
-        db = databases[database_name]
+    if database_name in databases["databases"]:
+        db = databases["databases"][database_name]
         if table_name in db:
             # Rename the table
             db[change_to_name] = db.pop(table_name)
-            save_database('data1.json', databases)
-            return f"Table name changed from '{table_name}' to '{change_to_name}' in database '{database_name}'."
+            print(f"Table name changed from '{table_name}' to '{change_to_name}' in database '{database_name}'.")
         else:
-            return f"Table '{table_name}' not found in database '{database_name}'."
+            print(f"Table '{table_name}' not found in database '{database_name}'.")
     else:
-        return f"Database '{database_name}' not found."
+        print(f"Database '{database_name}' not found.")
 
 def update_field_name(database_name, table_name, field_name, change_to_name):
-    databases = load_database('data1.json')
-    if database_name in databases:
-        db = databases[database_name]
+    if database_name in databases["databases"]:
+        db = databases["databases"][database_name]
         if table_name in db:
             table = db[table_name]
             for row in table:
                 if field_name in row:
                     # Rename the field in each row
                     row[change_to_name] = row.pop(field_name)
-            save_database('data1.json', databases)
-            return f"Field name changed from '{field_name}' to '{change_to_name}' in table '{table_name}' within database '{database_name}'."
+            print(f"Field name changed from '{field_name}' to '{change_to_name}' in table '{table_name}' within database '{database_name}'.")
         else:
-            return f"Table '{table_name}' not found in database '{database_name}'."
+            print(f"Table '{table_name}' not found in database '{database_name}'.")
     else:
-        return f"Database '{database_name}' not found."
+        print(f"Database '{database_name}' not found.")
 
 def update_table(database_name, table_name, keyvalue_pair, change_field, change_to):
     # This is a placeholder for the actual update logic
     # You should implement the logic to update the table in the database
 
-    return update_field_value(database_name, table_name, keyvalue_pair, change_field, change_to)
+    update_field_value(database_name, table_name, keyvalue_pair, change_field, change_to)
 
 def change_table_name(database_name, table_name, change_name_to):
     # This is a placeholder for the actual logic to change the table name
 
-    return update_table_name(database_name, table_name, change_name_to)
+    update_table_name(database_name, table_name, change_name_to)
 
 def change_field_name(database_name, table_name, field_name, change_field_name_to):
     # This is a placeholder for the actual logic to change the field name
 
-    return update_field_name(database_name, table_name, field_name, change_field_name_to)
+    update_field_name(database_name, table_name, field_name, change_field_name_to)
 
 def parse_update_query(query):
     # Extract the database name
@@ -541,14 +535,16 @@ def parse_update_query(query):
             keyvalue_pair[field.strip()] = value
 
         # Call the update function with parsed components
-        return update_table(database_name, table_name, keyvalue_pair, change_field, change_to)
+        result = update_table(database_name, table_name, keyvalue_pair, change_field, change_to)
+        return result
 
     elif change_table_name_match:
         table_name = change_table_name_match.group(1).strip()
         change_name_to = change_table_name_match.group(2).strip()
 
         # Call the change table name function with parsed components
-        return change_table_name(database_name, table_name, change_name_to)
+        result = change_table_name(database_name, table_name, change_name_to)
+        return result
 
     elif change_field_name_match:
         table_name = change_field_name_match.group(1).strip()
@@ -556,7 +552,8 @@ def parse_update_query(query):
         change_field_name_to = change_field_name_match.group(3).strip()
 
         # Call the change field name function with parsed components
-        return change_field_name(database_name, table_name, field_name, change_field_name_to)
+        result = change_field_name(database_name, table_name, field_name, change_field_name_to)
+        return result
 
     else:
         raise ValueError("Invalid query format.")
@@ -616,9 +613,8 @@ def alter_parse_query(query):
         return None, None, None, None, None, None
 
 def add_row_to_json_list(db_name, table_name, list_name, row_data, name_filter=None):
-    databases = load_database('data1.json')
-    if db_name in databases:
-        db = databases[db_name]
+    if db_name in databases["databases"]:
+        db = databases["databases"][db_name]
         if table_name in db:
             table = db[table_name]
             for entry in table:
@@ -632,22 +628,22 @@ def add_row_to_json_list(db_name, table_name, list_name, row_data, name_filter=N
                         if name_filter:
                             break  # If name_filter is provided, stop after processing the matching entry
                     else:
-                        return "Invalid row data. It should be a list of dictionaries."
+                        print("Invalid row data. It should be a list of dictionaries.")
+                        return
             else:
                 if name_filter:
-                    return f"No entry with name '{name_filter}' found in table '{table_name}'."
+                    print(f"No entry with name '{name_filter}' found in table '{table_name}'.")
                 else:
-                    return f"List '{list_name}' added to all entries in table '{table_name}'."
+                    print(f"List '{list_name}' added to all entries in table '{table_name}'.")
         else:
-            return f"Table '{table_name}' not found in database '{db_name}'."
+            print(f"Table '{table_name}' not found in database '{db_name}'.")
     else:
-        return f"Database '{db_name}' not found."
+        print(f"Database '{db_name}' not found.")
 
 def add_field_to_table(db_name, table_name, new_field_name, new_value, where_clause):
-    databases = load_database('data1.json')
     if db_name and table_name and new_field_name and new_value is not None:
         # Find the table in the database
-        table = databases.get(db_name, {}).get(table_name, [])
+        table = databases["databases"].get(db_name, {}).get(table_name, [])
 
         # Update the table with the new field and value based on the where clause
         if where_clause:
@@ -657,15 +653,13 @@ def add_field_to_table(db_name, table_name, new_field_name, new_value, where_cla
         else:
             for record in table:
                 record[new_field_name] = new_value
-        save_database('data1.json', databases)
     else:
-        return "Invalid query or parameters."
+        print("Invalid query or parameters.")
 
 def add_nested_field_to_table(db_name, table_name, list_name, values, where_clause):
-    databases = load_database('data1.json')
     if db_name and table_name and list_name and values is not None:
         # Find the table in the database
-        table = databases.get(db_name, {}).get(table_name, [])
+        table = databases["databases"].get(db_name, {}).get(table_name, [])
 
         # Update the table with the new nested field based on the where clause
         if where_clause:
@@ -675,21 +669,27 @@ def add_nested_field_to_table(db_name, table_name, list_name, values, where_clau
         else:
             for record in table:
                 record[list_name] = values
-        save_database('data1.json', databases)
     else:
-        return "Invalid query or parameters."
+        print("Invalid query or parameters.")
 
 def alter_execute_query(query):
     query_type, db_name, table_name, param3, param4, where_clause = alter_parse_query(query)
 
     if query_type == "add_row":
-        return add_row_to_json_list(db_name, table_name, param3, param4, where_clause.get("name") if where_clause else None)
+        add_row_to_json_list(db_name, table_name, param3, param4, where_clause.get("name") if where_clause else None)
     elif query_type == "add_field":
-        return add_field_to_table(db_name, table_name, param3, param4, where_clause)
+        add_field_to_table(db_name, table_name, param3, param4, where_clause)
     elif query_type == "add_nested_field":
-        return add_nested_field_to_table(db_name, table_name, param3, param4, where_clause)
+        add_nested_field_to_table(db_name, table_name, param3, param4, where_clause)
     else:
-        return "Invalid query type."
+        print("Invalid query type.")
+
+    # Print the updated table structure
+    if db_name in databases["databases"] and table_name in databases["databases"][db_name]:
+        table = databases["databases"][db_name][table_name]
+        print(f"\nUpdated {table_name} table in {db_name} database:")
+        for record in table:
+            print(record)
 
 # Delete function begins from here
 
@@ -738,47 +738,41 @@ def delete_parse_query(query):
         return None, None, None, None, None
 
 def delete_database(db_name):
-    databases = load_database('data1.json')
-    if db_name in databases:
-        del databases[db_name]
-        save_database('data1.json', databases)
-        return f"Database '{db_name}' deleted successfully."
+    if db_name in databases["databases"]:
+        del databases["databases"][db_name]
+        print(f"Database '{db_name}' deleted successfully.")
     else:
-        return f"Database '{db_name}' not found."
+        print(f"Database '{db_name}' not found.")
 
 def delete_table(db_name, table_name):
-    databases = load_database('data1.json')
-    if db_name in databases:
-        db = databases[db_name]
+    if db_name in databases["databases"]:
+        db = databases["databases"][db_name]
         if table_name in db:
             del db[table_name]
-            save_database('data1.json', databases)
-            return f"Table '{table_name}' deleted successfully from database '{db_name}'."
+            print(f"Table '{table_name}' deleted successfully from database '{db_name}'.")
         else:
-            return f"Table '{table_name}' not found in database '{db_name}'."
+            print(f"Table '{table_name}' not found in database '{db_name}'.")
     else:
-        return f"Database '{db_name}' not found."
+        print(f"Database '{db_name}' not found.")
 
 def delete_field(db_name, table_name, field_name):
-    databases = load_database('data1.json')
-    if db_name in databases:
-        db = databases[db_name]
+    if db_name in databases["databases"]:
+        db = databases["databases"][db_name]
         if table_name in db:
             table = db[table_name]
             for record in table:
                 if field_name in record:
                     del record[field_name]
-            save_database('data1.json', databases)
-            return f"Field '{field_name}' deleted successfully from table '{table_name}' in database '{db_name}'."
+            print(f"Field '{field_name}' deleted successfully from table '{table_name}' in database '{db_name}'.")
+            return table
         else:
-            return f"Table '{table_name}' not found in database '{db_name}'."
+            print(f"Table '{table_name}' not found in database '{db_name}'.")
     else:
-        return f"Database '{db_name}' not found."
+        print(f"Database '{db_name}' not found.")
 
 def delete_field_within_list(db_name, table_name, field_name, list_name):
-    databases = load_database('data1.json')
-    if db_name in databases:
-        db = databases[db_name]
+    if db_name in databases["databases"]:
+        db = databases["databases"][db_name]
         if table_name in db:
             table = db[table_name]
             for record in table:
@@ -786,61 +780,69 @@ def delete_field_within_list(db_name, table_name, field_name, list_name):
                     for item in record[list_name]:
                         if field_name in item:
                             del item[field_name]
-            save_database('data1.json', databases)
-            return f"Field '{field_name}' within list '{list_name}' deleted successfully from table '{table_name}' in database '{db_name}'."
+            print(f"Field '{field_name}' within list '{list_name}' deleted successfully from table '{table_name}' in database '{db_name}'.")
+            return table
         else:
-            return f"Table '{table_name}' not found in database '{db_name}'."
+            print(f"Table '{table_name}' not found in database '{db_name}'.")
     else:
-        return f"Database '{db_name}' not found."
+        print(f"Database '{db_name}' not found.")
 
 def delete_list_field(db_name, table_name, list_field_name):
-    databases = load_database('data1.json')
-    if db_name in databases:
-        db = databases[db_name]
+    if db_name in databases["databases"]:
+        db = databases["databases"][db_name]
         if table_name in db:
             table = db[table_name]
             for record in table:
                 if list_field_name in record:
                     del record[list_field_name]
-            save_database('data1.json', databases)
-            return f"List field '{list_field_name}' deleted successfully from table '{table_name}' in database '{db_name}'."
+            print(f"List field '{list_field_name}' deleted successfully from table '{table_name}' in database '{db_name}'.")
+            return table
         else:
-            return f"Table '{table_name}' not found in database '{db_name}'."
+            print(f"Table '{table_name}' not found in database '{db_name}'.")
     else:
-        return f"Database '{db_name}' not found."
+        print(f"Database '{db_name}' not found.")
 
 def execute_delete_query(query):
     query_type, *params = delete_parse_query(query)
 
     if query_type == "delete_database":
-        return delete_database(*params)
+        delete_database(*params)
     elif query_type == "delete_table":
-        return delete_table(*params)
+        delete_table(*params)
     elif query_type == "delete_field":
-        return delete_field(*params)
+        table = delete_field(*params)
+        if table:
+            print(f"\nUpdated {params[1]} table in {params[0]} database:")
+            print(json.dumps(table, indent=4))
     elif query_type == "delete_field_within_list":
-        return delete_field_within_list(*params)
+        table = delete_field_within_list(*params)
+        if table:
+            print(f"\nUpdated {params[1]} table in {params[0]} database:")
+            print(json.dumps(table, indent=4))
     elif query_type == "delete_list_field":
-        return delete_list_field(*params)
+        table = delete_list_field(*params)
+        if table:
+            print(f"\nUpdated {params[1]} table in {params[0]} database:")
+            print(json.dumps(table, indent=4))
     else:
-        return "Invalid query type."
+        print("Invalid query type.")
 
 # Alter function begins from here
 
 def create_table_in_database(database_name, table_name, value_row):
-    databases = load_database('data1.json')
     # Check if the database exists
-    if database_name not in databases:
-        return f"Database '{database_name}' not found."
+    if database_name not in databases["databases"]:
+        print(f"Database '{database_name}' not found.")
+        return
 
     # Check if the table already exists
-    if table_name in databases[database_name]:
-        return f"Table '{table_name}' already exists in database '{database_name}'."
+    if table_name in databases["databases"][database_name]:
+        print(f"Table '{table_name}' already exists in database '{database_name}'.")
+        return
 
     # Create the new table with the given value row
-    databases[database_name][table_name] = [value_row]
-    save_database('data1.json', databases)
-    return f"Table '{table_name}' created in database '{database_name}' with values: {value_row}"
+    databases["databases"][database_name][table_name] = [value_row]
+    print(f"Table '{table_name}' created in database '{database_name}' with values: {value_row}")
 
 def parse_create_table_query(query):
     # Extract the database name
@@ -866,20 +868,19 @@ def parse_create_table_query(query):
         value_row = json.loads(value_row_str.replace("'", "\""))
 
         # Call the create table function with parsed components
-        return create_table_in_database(database_name, table_name, value_row)
+        create_table_in_database(database_name, table_name, value_row)
     else:
         raise ValueError("Invalid query format.")
 
 def create_database(database_name):
-    databases = load_database('data1.json')
     # Check if the database already exists
-    if database_name in databases:
-        return f"Database '{database_name}' already exists."
+    if database_name in databases["databases"]:
+        print(f"Database '{database_name}' already exists.")
+        return
 
     # Create the new database
-    databases[database_name] = {}
-    save_database('data1.json', databases)
-    return f"Database '{database_name}' created."
+    databases["databases"][database_name] = {}
+    print(f"Database '{database_name}' created.")
 
 def parse_create_database_query(query):
     # Extract the database name
@@ -890,39 +891,42 @@ def parse_create_database_query(query):
     database_name = create_db_match.group(1).strip()
 
     # Call the create database function with the parsed database name
-    return create_database(database_name)
+    create_database(database_name)
 
 # Function to show the content of a table
 def show_table_content(database_name, table_name):
-    databases = load_database('data1.json')
-    if database_name in databases:
-        db = databases[database_name]
+    if database_name in databases["databases"]:
+        db = databases["databases"][database_name]
         if table_name in db:
             table = db[table_name]
-            return f"Content of table '{table_name}' in database '{database_name}':\n{table}"
+            print(f"Content of table '{table_name}' in database '{database_name}':")
+            for record in table:
+                print(record)
         else:
-            return f"Table '{table_name}' not found in database '{database_name}'."
+            print(f"Table '{table_name}' not found in database '{database_name}'.")
     else:
-        return f"Database '{database_name}' not found."
+        print(f"Database '{database_name}' not found.")
 
 # Function to list all database names
 def list_all_databases():
-    databases = load_database('data1.json')
-    return "Databases:\n" + "\n".join(databases.keys())
+    print("Databases:")
+    for db_name in databases["databases"].keys():
+        print(db_name)
 
+# Function to call the relevant parsing function based on the query
 # Function to call the relevant parsing function based on the query
 def execute_query(query):
     if query.startswith("USE DATABASE"):
         if "FIND" in query:
-            return parse_query(query)
+            parse_query(query)
         elif "UPDATE" in query:
-            return parse_update_query(query)
+            parse_update_query(query)
         elif "DELETE" in query:
-            return execute_delete_query(query)
+            execute_delete_query(query)
         elif "ALTER" in query:
-            return alter_execute_query(query)
+            alter_execute_query(query)
         elif "CREATE" in query:
-            return parse_create_table_query(query)
+            parse_create_table_query(query)
         elif "SHOW TABLE" in query:
             # Extract database name and table name
             db_name_match = re.search(r'USE DATABASE (\w+)', query)
@@ -930,45 +934,44 @@ def execute_query(query):
             if db_name_match and table_name_match:
                 database_name = db_name_match.group(1)
                 table_name = table_name_match.group(1)
-                return show_table_content(database_name, table_name)
+                show_table_content(database_name, table_name)
             else:
-                return "Invalid query format for showing table content."
+                print("Invalid query format for showing table content.")
         else:
-            return "Invalid query format."
+            print("Invalid query format.")
     elif query.startswith("CREATE DATABASE"):
-        return parse_create_database_query(query)
+        parse_create_database_query(query)
     elif query.startswith("DELETE DATABASE"):
-        return execute_delete_query(query)
+        execute_delete_query(query)
     elif query.startswith("SHOW DATABASES"):
-        return list_all_databases()
+        list_all_databases()
     else:
-        return "Invalid query format."
+        print("Invalid query format.")
 
 # Load the database from a JSON file
 load_database('data1.json')
 
+# Streamlit interface
+st.title("Database Query Interface")
+
+# Input box for the query
+query = st.text_input("Enter your query:")
+
+# Button to execute the query
+if st.button("Execute Query"):
+    if query:
+        # Execute the query
+        execute_query(query)
+
+        # Display the query result
+        st.subheader("Query Result:")
+        st.write(query)
+
+        # Display the updated database structure
+        st.subheader("Updated Database Structure:")
+        st.json(databases)
+    else:
+        st.warning("Please enter a query.")
+
 # Save the database to a JSON file
 save_database('data1.json')
-
-def main():
-    st.title("Database Query Interface")
-
-    # Styled input box
-    query = st.text_input("Enter your query:", key="query_input", help="Enter your SQL-like query here.")
-
-    # Styled execute button
-    if st.button("Execute", key="execute_button"):
-        if query.strip():
-            try:
-                result = execute_query(query)
-                st.success(result)  # Display the query result as a success message
-            except Exception as e:
-                st.error(f"Error: {e}")
-        else:
-            st.error("Please enter a query to execute.")
-
-    # Display the database structure permanently
-    st.json(load_database('data1.json'), expanded=False)
-
-if __name__ == "__main__":
-    main()
