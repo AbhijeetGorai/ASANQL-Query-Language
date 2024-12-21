@@ -951,5 +951,4 @@ if st.button("Execute Query"):
         st.write("Please enter a query.")
 
 # Save the database to a JSON file when the app is closed
-st.write("Database saved to 'data1.json'")
 save_database('data1.json')
