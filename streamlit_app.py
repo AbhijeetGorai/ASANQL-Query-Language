@@ -926,6 +926,7 @@ def execute_query(query):
     else:
         return "Invalid query format."
 
+database_file = 'data1.json'
 # Streamlit app
 def main():
     st.title("Database Query Executor")
