@@ -940,9 +940,6 @@ if st.button("Execute Query"):
         st.write("Query Result:")
         st.write(result)
 
-        # Save the updated database to a JSON file
-        save_database('data1.json')
-
         # Display the updated database structure
         st.write("Updated Database Structure:")
         st.json(databases)
